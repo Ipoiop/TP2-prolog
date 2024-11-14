@@ -1,7 +1,7 @@
 %%%%%%%%%%%%%%%%%%%%%%%%
 %% Predicados básicos %%
 %%%%%%%%%%%%%%%%%%%%%%%%
-
+%% hola
 %% Ejercicio 1
 %% proceso(+P)
 proceso(escribir(A,B)).
