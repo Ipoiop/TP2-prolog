@@ -5,10 +5,9 @@
 % Ejercicio 1
 
 % proceso(+P)
-proceso(escribir(B,E)).
+proceso(escribir(_,_)).
 proceso(computar).
-proceso(leer(B)).
-proceso(leer(B, E)).
+proceso(leer(_)).
 proceso(secuencia(P,Q)):- proceso(P), proceso(Q).
 proceso(paralelo(P,Q)):- proceso(P), proceso(Q).
 
@@ -56,7 +55,6 @@ intercalar(XS, [Y|YS], [Y|ZS]) :- XS \= [], intercalar(XS, YS, ZS).
 % si es secuencia devuelvo la lista como en buffersUsados
 
 serializar(escribir(B,E), [escribir(B,E)]).
-serializar(leer(B,E), [leer(B,E)]).
 serializar(leer(B), [leer(B)]).
 serializar(computar, [computar]).
 
@@ -73,11 +71,33 @@ serializar(paralelo(P,Q),XS):- serializar(P,PS), serializar(Q,QS), intercalar(PS
 %% contenidoBuffer(+B,+ProcesoOLista,?Contenidos)
 
 % si es proceso lo serializo para que sea mas facil
-contenidoBuffer(B,proceso(P),L) :- serializar(P, XS), contenidoBuffer(B,XS,L).
+contenidoBuffer(B,P,L) :- proceso(P), serializar(P, XS), contenidoBuffer(B,XS,L).
 
 
-% caso general, me fijo que XS esté serializado.
-contenidoBuffer(B,[X|XS],L) :- is_list([X|XS]), 
+% casos base.
+contenidoBuffer(B,[computar|[]],L).
+
+
+contenidoBuffer(B,[escribir(B,E)|[]],[E]).
+contenidoBuffer(B,[escribir(B2,E)|[]],[]):- B \= B2.
+
+contenidoBuffer(B,[leer(B)|[]],[]).
+contenidoBuffer(B,[leer(B2)|[]],[]):- B \= B2.
+
+% casos recursivos.
+contenidoBuffer(B,[computar|XS],L) :- contenidoBuffer(B,XS,L).
+
+contenidoBuffer(B,[escribir(B,E)|XS],[E|L]) :- contenidoBuffer(B,XS,L).
+contenidoBuffer(B,[escribir(B2,_)|XS],L) :- B \= B2, contenidoBuffer(B,XS,L).
+
+%% -- no elimina el primer elemento de la lista al leer !!!!!!!!!!!!!!
+contenidoBuffer(B,[leer(B)|XS],[_|L]) :- contenidoBuffer(B,XS,L).
+contenidoBuffer(B,[leer(B2)|XS],L) :- B \= B2, contenidoBuffer(B,XS,L).
+
+
+
+removehead([], []).
+removehead([_|L], L).
 
 %% Ejercicio 6
 %% contenidoLeido(+ProcesoOLista,?Contenidos)
