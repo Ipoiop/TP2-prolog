@@ -1,27 +1,33 @@
 %%%%%%%%%%%%%%%%%%%%%%%%
 %% Predicados básicos %%
 %%%%%%%%%%%%%%%%%%%%%%%%
-%% hola
-%% Ejercicio 1
-%% proceso(+P)
-proceso(escribir(A,B)).
-proceso(leer(B)).
-proceso(secuencia(P,Q)).
-proceso(paralelo(P,Q)).
+
+% Ejercicio 1
+
+% proceso(+P)
+proceso(escribir(B,E)).
 proceso(computar).
+proceso(leer(B)).
+proceso(leer(B, E)).
+proceso(secuencia(P,Q)):- proceso(P), proceso(Q).
+proceso(paralelo(P,Q)):- proceso(P), proceso(Q).
 
 
-%% Ejercicio 2
-%% buffersUsados(+P,-BS)
-buffersUsados(P,BS) :- setof(BS,bufferUsados2(P,L),BS) % esto hara el trabajo de poner todos los que son solucion sin repetidos.
+% Ejercicio 2
+
+% buffersUsados(+P,-BS)
+buffersUsados(P,BS) :- proceso(P), setof(L,identificarBuffer(P,L),BS). % esto hara el trabajo de eliminar los repetidos.
+
 % este hara el trabajo de identificar que se uso 
-bufferUsados2(computar,_). % osea, sea cual sea la solucion, sera esa si tenes computar.
-bufferUsados2(escribir(B,E),B).
-bufferUsados2(leer(B),B).
-bufferUsados2(secuencia(P,Q),BS):- bufferUsados2(P,BS).
-bufferUsados2(secuencia(P,Q),BS):- bufferUsados2(Q,BS).
-bufferUsados2(paralelo(P,Q),BS):- bufferUsados2(P,BS).
-bufferUsados2(paralelo(P,Q),BS):- bufferUsados2(Q,BS).
+% identificarBuffer(+P, -BS)
+identificarBuffer(computar,_). 
+identificarBuffer(escribir(B,E),B).
+identificarBuffer(leer(B),B).
+
+identificarBuffer(secuencia(P,Q),BS):- identificarBuffer(P,BS).
+identificarBuffer(secuencia(P,Q),BS):- identificarBuffer(Q,BS).
+identificarBuffer(paralelo(P,Q),BS):- identificarBuffer(P,BS).
+identificarBuffer(paralelo(P,Q),BS):- identificarBuffer(Q,BS).
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 %% Organización de procesos %%
@@ -29,11 +35,35 @@ bufferUsados2(paralelo(P,Q),BS):- bufferUsados2(Q,BS).
 
 %% Ejercicio 3
 %% intercalar(+XS,+YS,?ZS)
-intercalar(_,_,_).
+
+intercalar([], YS, YS).
+intercalar(XS, [], XS).
+intercalar([X|XS], YS, [X|ZS]) :- YS \= [], intercalar(XS, YS, ZS).
+intercalar(XS, [Y|YS], [Y|ZS]) :- XS \= [], intercalar(XS, YS, ZS).
+
+% 1 2 3 4
+% 1 3 2 4
+% 1 3 4 2
+% 3 4 1 2
+% 3 1 4 2
+% 3 1 2 4
+
 
 %% Ejercicio 4
 %% serializar(+P,?XS)
-serializar(_,_).
+
+% quiero dividir en casos, cuando sea un paralelo tengo que usar la función de intercalar, 
+% si es secuencia devuelvo la lista como en buffersUsados
+
+serializar(escribir(B,E), [escribir(B,E)]).
+serializar(leer(B,E), [leer(B,E)]).
+serializar(leer(B), [leer(B)]).
+serializar(computar, [computar]).
+
+
+serializar(secuencia(P,Q),XS):- serializar(P,PS), serializar(Q,QS), append(PS,QS,XS).
+serializar(paralelo(P,Q),XS):- serializar(P,PS), serializar(Q,QS), intercalar(PS,QS,XS).
+
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 %% Contenido de los buffers %%
@@ -41,8 +71,13 @@ serializar(_,_).
 
 %% Ejercicio 5
 %% contenidoBuffer(+B,+ProcesoOLista,?Contenidos)
-contenidoBuffer(_,_,_).
 
+% si es proceso lo serializo para que sea mas facil
+contenidoBuffer(B,proceso(P),L) :- serializar(P, XS), contenidoBuffer(B,XS,L).
+
+
+% caso general, me fijo que XS esté serializado.
+contenidoBuffer(B,[X|XS],L) :- is_list([X|XS]), 
 
 %% Ejercicio 6
 %% contenidoLeido(+ProcesoOLista,?Contenidos)
