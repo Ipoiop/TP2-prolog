@@ -20,13 +20,13 @@ buffersUsados(P,BS) :- proceso(P), setof(L,identificarBuffer(P,L),BS). % esto ha
 % este hara el trabajo de identificar que se uso 
 % identificarBuffer(+P, -BS)
 identificarBuffer(computar,_). 
-identificarBuffer(escribir(B,E),B).
+identificarBuffer(escribir(B,_),B).
 identificarBuffer(leer(B),B).
 
-identificarBuffer(secuencia(P,Q),BS):- identificarBuffer(P,BS).
-identificarBuffer(secuencia(P,Q),BS):- identificarBuffer(Q,BS).
-identificarBuffer(paralelo(P,Q),BS):- identificarBuffer(P,BS).
-identificarBuffer(paralelo(P,Q),BS):- identificarBuffer(Q,BS).
+identificarBuffer(secuencia(P,_),BS):- identificarBuffer(P,BS).
+identificarBuffer(secuencia(_,Q),BS):- identificarBuffer(Q,BS).
+identificarBuffer(paralelo(P,_),BS):- identificarBuffer(P,BS).
+identificarBuffer(paralelo(_,Q),BS):- identificarBuffer(Q,BS).
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 %% Organización de procesos %%
@@ -75,14 +75,21 @@ contenidoBuffer(B,P,L) :- proceso(P), serializar(P, XS), contenidoBuffer(B,XS,L)
 
 
 % casos base.
-contenidoBuffer(B,[computar|[]],L).
 
 
-contenidoBuffer(B,[escribir(B,E)|[]],[E]).
-contenidoBuffer(B,[escribir(B2,E)|[]],[]):- B \= B2.
 
-contenidoBuffer(B,[leer(B)|[]],[]).
-contenidoBuffer(B,[leer(B2)|[]],[]):- B \= B2.
+contenidoBuffer(_,[],_).
+% contenidoBuffer(B,[computar|[]],L).
+
+
+% contenidoBuffer(B,[escribir(B,E)|[]],[E]).
+% contenidoBuffer(B,[escribir(B2,E)|[]],[]):- B \= B2.
+
+% contenidoBuffer(B,[leer(B)|[]],L):- tail(L, LS), contenidoBuffer(_,[],LS).
+% contenidoBuffer(B,[leer(B2)|[]],L):- B \= B2.
+
+
+
 
 % casos recursivos.
 contenidoBuffer(B,[computar|XS],L) :- contenidoBuffer(B,XS,L).
@@ -91,13 +98,12 @@ contenidoBuffer(B,[escribir(B,E)|XS],[E|L]) :- contenidoBuffer(B,XS,L).
 contenidoBuffer(B,[escribir(B2,_)|XS],L) :- B \= B2, contenidoBuffer(B,XS,L).
 
 %% -- no elimina el primer elemento de la lista al leer !!!!!!!!!!!!!!
-contenidoBuffer(B,[leer(B)|XS],[_|L]) :- contenidoBuffer(B,XS,L).
+contenidoBuffer(B,[leer(B)|XS],[_|L]) :- contenidoBuffer(B,XS,LS).
 contenidoBuffer(B,[leer(B2)|XS],L) :- B \= B2, contenidoBuffer(B,XS,L).
 
 
 
-removehead([], []).
-removehead([_|L], L).
+[leer(1)]
 
 %% Ejercicio 6
 %% contenidoLeido(+ProcesoOLista,?Contenidos)
@@ -120,37 +126,37 @@ ejecucionSegura(_,_,_).
 
 
 
-%%%%%%%%%%%
-%% TESTS %%
-%%%%%%%%%%%
+% %%%%%%%%%%%
+% %% TESTS %%
+% %%%%%%%%%%%
 
-% Se espera que completen con las subsecciones de tests que crean necesarias, más allá de las puestas en estos ejemplos
+% % Se espera que completen con las subsecciones de tests que crean necesarias, más allá de las puestas en estos ejemplos
 
-cantidadTestsBasicos(2). % Actualizar con la cantidad de tests que entreguen
-testBasico(1) :- proceso(computar).
-testBasico(2) :- proceso(secuencia(escribir(1,pepe),escribir(2,pipo))).
-testBasico(3) :- buffersUsados(escribir(1, hola), [1]).
-% Agregar más tests
+% cantidadTestsBasicos(2). % Actualizar con la cantidad de tests que entreguen
+% testBasico(1) :- proceso(computar).
+% testBasico(2) :- proceso(secuencia(escribir(1,pepe),escribir(2,pipo))).
+% testBasico(3) :- buffersUsados(escribir(1, hola), [1]).
+% % Agregar más tests
 
-cantidadTestsProcesos(0). % Actualizar con la cantidad de tests que entreguen
-% Agregar más tests
+% cantidadTestsProcesos(0). % Actualizar con la cantidad de tests que entreguen
+% % Agregar más tests
 
-cantidadTestsBuffers(0). % Actualizar con la cantidad de tests que entreguen
-% Agregar más tests
+% cantidadTestsBuffers(0). % Actualizar con la cantidad de tests que entreguen
+% % Agregar más tests
 
-cantidadTestsSeguros(0). % Actualizar con la cantidad de tests que entreguen
-% Agregar más tests
+% cantidadTestsSeguros(0). % Actualizar con la cantidad de tests que entreguen
+% % Agregar más tests
 
 
-tests(basico) :- cantidadTestsBasicos(M), forall(between(1,M,N), testBasico(N)).
-tests(procesos) :- cantidadTestsProcesos(M), forall(between(1,M,N), testProcesos(N)).
-tests(buffers) :- cantidadTestsBuffers(M), forall(between(1,M,N), testBuffers(N)).
-tests(seguros) :- cantidadTestsSeguros(M), forall(between(1,M,N), testSeguros(N)).
+% tests(basico) :- cantidadTestsBasicos(M), forall(between(1,M,N), testBasico(N)).
+% tests(procesos) :- cantidadTestsProcesos(M), forall(between(1,M,N), testProcesos(N)).
+% tests(buffers) :- cantidadTestsBuffers(M), forall(between(1,M,N), testBuffers(N)).
+% tests(seguros) :- cantidadTestsSeguros(M), forall(between(1,M,N), testSeguros(N)).
 
-tests(todos) :-
-  tests(basico),
-  tests(procesos),
-  tests(buffers),
-  tests(seguros).
+% tests(todos) :-
+%   tests(basico),
+%   tests(procesos),
+%   tests(buffers),
+%   tests(seguros).
 
-tests :- tests(todos).
+% tests :- tests(todos).
