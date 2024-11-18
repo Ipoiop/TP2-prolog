@@ -18,6 +18,7 @@ proceso(paralelo(P,Q)):- proceso(P), proceso(Q).
 buffersUsados(P,BS) :- proceso(P), setof(L,identificarBuffer(P,L),BS). % esto hara el trabajo de eliminar los repetidos.
 
 % este hara el trabajo de identificar que se uso 
+
 % identificarBuffer(+P, -BS)
 identificarBuffer(computar,_). 
 identificarBuffer(escribir(B,_),B).
@@ -73,41 +74,24 @@ serializar(paralelo(P,Q),XS):- serializar(P,PS), serializar(Q,QS), intercalar(PS
 % si es proceso lo serializo para que sea mas facil
 contenidoBuffer(B,P,L) :- proceso(P), serializar(P, XS), contenidoBuffer(B,XS,L).
 
+contenidoBuffer(B,XS,L) :- is_list(XS), listarBuffers(B, XS, [], L).
 
-% casos base.
+%listarBuffers(+B,+P,+L,-Out)
+listarBuffers(_, [], L,  L).
 
+listarBuffers(B, [computar|XS], L, Out) :- listarBuffers(B, XS, L, Out) .
 
-
-contenidoBuffer(_,[],_).
-% contenidoBuffer(B,[computar|[]],L).
-
-
-% contenidoBuffer(B,[escribir(B,E)|[]],[E]).
-% contenidoBuffer(B,[escribir(B2,E)|[]],[]):- B \= B2.
-
-% contenidoBuffer(B,[leer(B)|[]],L):- tail(L, LS), contenidoBuffer(_,[],LS).
-% contenidoBuffer(B,[leer(B2)|[]],L):- B \= B2.
+listarBuffers(B, [escribir(B,E)|XS], L, Out) :- append(L, [E], L2), listarBuffers(B, XS, L2, Out).
+listarBuffers(B, [escribir(B2,_)|XS], L, Out) :- B \= B2, listarBuffers(B, XS, L, Out).
 
 
+listarBuffers(B, [leer(B)|XS], [_|L], Out) :- listarBuffers(B, XS, L, Out).
+listarBuffers(B, [leer(B2)|XS], L, Out) :- B \= B2, listarBuffers(B, XS, L, Out).
 
-
-% casos recursivos.
-contenidoBuffer(B,[computar|XS],L) :- contenidoBuffer(B,XS,L).
-
-contenidoBuffer(B,[escribir(B,E)|XS],[E|L]) :- contenidoBuffer(B,XS,L).
-contenidoBuffer(B,[escribir(B2,_)|XS],L) :- B \= B2, contenidoBuffer(B,XS,L).
-
-%% -- no elimina el primer elemento de la lista al leer !!!!!!!!!!!!!!
-contenidoBuffer(B,[leer(B)|XS],[_|L]) :- contenidoBuffer(B,XS,LS).
-contenidoBuffer(B,[leer(B2)|XS],L) :- B \= B2, contenidoBuffer(B,XS,L).
-
-
-
-[leer(1)]
 
 %% Ejercicio 6
 %% contenidoLeido(+ProcesoOLista,?Contenidos)
-contenidoLeido(_,_).
+
 
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
