@@ -79,7 +79,7 @@ contenidoBuffer(B,XS,L) :- is_list(XS), listarBuffers(B, XS, [], L).
 %listarBuffers(+B,+P,+L,-Out)
 listarBuffers(_, [], L,  L).
 
-listarBuffers(B, [computar|XS], L, Out) :- listarBuffers(B, XS, L, Out) .
+listarBuffers(B, [computar|XS], L, Out) :- listarBuffers(B, XS, L, Out).
 
 listarBuffers(B, [escribir(B,E)|XS], L, Out) :- append(L, [E], L2), listarBuffers(B, XS, L2, Out).
 listarBuffers(B, [escribir(B2,_)|XS], L, Out) :- B \= B2, listarBuffers(B, XS, L, Out).
@@ -94,6 +94,8 @@ listarBuffers(B, [leer(B2)|XS], L, Out) :- B \= B2, listarBuffers(B, XS, L, Out)
 
 
 
+
+
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 %% Contenido de los buffers %%
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
@@ -101,9 +103,37 @@ listarBuffers(B, [leer(B2)|XS], L, Out) :- B \= B2, listarBuffers(B, XS, L, Out)
 %% Ejercicio 7
 %% esSeguro(+P)
 
+
+esSeguro(P):- proceso(P), buffersUsados(P, BS),
+              forall( member(B, BS), (contenidoBuffer(B, P, L), is_list(L), paralelosUnicos(P))).
+
+
+% paralelosUnicos(+P)
+% retorna true <=> todos los procesos paralelos de P utilizan buffers distintos.
+paralelosUnicos(escribir(_,_)).
+paralelosUnicos(computar).
+paralelosUnicos(leer(_)).
+
+paralelosUnicos(secuencia(P,Q)):- paralelosUnicos(P), paralelosUnicos(Q).
+paralelosUnicos(paralelo(P,Q)):- buffersUsados(P, BP),  buffersUsados(Q, BQ), intersection(BP,BQ,[]),  
+              paralelosUnicos(P), paralelosUnicos(Q).
+
 %% Ejercicio 8
 %% ejecucionSegura( XS,+BS,+CS) - COMPLETAR LA INSTANCIACIÓN DE XS
-ejecucionSegura(_,_,_).
+% ejecucionSegura(_,_,_).
+
+% ejecucionSegura(XS, BS, CS) :- member(B, BS), member(C, CS), 
+
+
+
+
+
+
+
+
+
+
+
 
   %% 8.1. Analizar la reversibilidad de XS, justificando adecuadamente por qué el predicado se comporta como
   %% lo hace.
